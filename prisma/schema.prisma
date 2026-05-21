@@ -7,99 +7,84 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Role {
-  STUDENT
-  COMPANY
-}
-
-enum ListingType {
-  INTERNSHIP
-  HACKATHON
-}
-
-enum AppStatus {
-  APPLIED
-  INTERVIEWING
-  OFFERED
-  REJECTED
-}
-
 model User {
   id            String    @id @default(cuid())
   name          String?
-  email         String    @unique
-  emailVerified DateTime?
+  email         String?   @unique
   image         String?
-  role          Role      @default(STUDENT)
   createdAt     DateTime  @default(now())
-  accounts      Account[]
-  sessions      Session[]
-  student       Student?
-  company       Company?
+  emailVerified DateTime?
+  role          Role?
+
+  accounts Account[]
+  company  Company?
+  sessions Session[]
+  student  Student?
 }
 
 model Student {
-  id           String        @id @default(cuid())
-  userId       String        @unique
-  user         User          @relation(fields: [userId], references: [id])
-  branch       String?
-  year         Int?
-  skills       String[]
-  college      String?
-  bio          String?
-  resumeUrl    String?
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  branch    String?
+  year      Int?
+  college   String?
+  skills    String[]
+  bio       String?
+  phone     String?
+  resumeUrl String?
+
   applications Application[]
-  alerts       AlertPref?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Company {
-  id          String    @id @default(cuid())
-  userId      String    @unique
-  user        User      @relation(fields: [userId], references: [id])
-  companyName String
-  website     String?
+  id          String  @id @default(cuid())
+  userId      String  @unique
+  name        String
   description String?
-  verified    Boolean   @default(false)
-  listings    Listing[]
+  location    String?
+  logo        String?
+  website     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime? @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  listings Listing[]
 }
 
 model Listing {
-  id           String        @id @default(cuid())
-  companyId    String
-  company      Company       @relation(fields: [companyId], references: [id])
-  title        String
-  type         ListingType
-  description  String
-  skills       String[]
-  branch       String[]
-  stipend      String?
-  location     String?
-  deadline     DateTime
-  createdAt    DateTime      @default(now())
+  id          String      @id @default(cuid())
+  companyId   String
+  title       String
+  type        ListingType
+  description String
+  location    String?
+  deadline    DateTime?
+  createdAt   DateTime    @default(now())
+  updatedAt DateTime? @updatedAt
+
+  skills String[]
+
   applications Application[]
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
 }
 
 model Application {
   id        String    @id @default(cuid())
   studentId String
   listingId String
-  student   Student   @relation(fields: [studentId], references: [id])
-  listing   Listing   @relation(fields: [listingId], references: [id])
   status    AppStatus @default(APPLIED)
-  notes     String?
   createdAt DateTime  @default(now())
-}
 
-model AlertPref {
-  id        String   @id @default(cuid())
-  studentId String   @unique
-  student   Student  @relation(fields: [studentId], references: [id])
-  skills    String[]
-  branch    String?
-  year      Int?
-  email     Boolean  @default(true)
-  whatsapp  Boolean  @default(false)
-  phone     String?
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, listingId])
 }
 
 model Account {
@@ -114,8 +99,9 @@ model Account {
   token_type        String?
   scope             String?
   id_token          String?
-  session_state     String?
-  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  user User @relation(fields: [userId], references: [id])
+
   @@unique([provider, providerAccountId])
 }
 
@@ -124,12 +110,32 @@ model Session {
   sessionToken String   @unique
   userId       String
   expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  user User @relation(fields: [userId], references: [id])
 }
 
 model VerificationToken {
   identifier String
   token      String   @unique
   expires    DateTime
+
   @@unique([identifier, token])
+}
+
+enum ListingType {
+  INTERNSHIP
+  HACKATHON
+  JOB
+}
+
+enum AppStatus {
+  APPLIED
+  INTERVIEWING
+  OFFERED
+  REJECTED
+}
+
+enum Role {
+  STUDENT
+  COMPANY
 }

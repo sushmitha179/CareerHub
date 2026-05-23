@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "Student" ADD COLUMN IF NOT EXISTS "resumeFileName" TEXT;
+ALTER TABLE "Student" ADD COLUMN IF NOT EXISTS "resumeMimeType" TEXT;
+ALTER TABLE "Student" ADD COLUMN IF NOT EXISTS "resumeUploadedAt" TIMESTAMP(3);

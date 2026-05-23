@@ -39,11 +39,13 @@ export default function ListingsPage() {
 
                 setListings(Array.isArray(listingsData) ? listingsData : []);
 
-                if (Array.isArray(appsData)) {
-                    setApplied(appsData.map((a: any) => a.listingId));
-                } else {
-                    setApplied([]);
-                }
+                const applications = Array.isArray(appsData)
+                    ? appsData
+                    : appsData.applications ?? [];
+
+                setApplied(
+                    applications.map((a: { listingId: string }) => a.listingId)
+                );
             } catch (err) {
                 console.error("Fetch error:", err);
                 setMessage("Something went wrong");
@@ -78,7 +80,9 @@ export default function ListingsPage() {
                 return;
             }
 
-            setApplied((prev) => [...prev, listingId]);
+            setApplied((prev) =>
+                prev.includes(listingId) ? prev : [...prev, listingId]
+            );
             setMessage("Application submitted successfully ✅");
         } catch (err) {
             console.error(err);

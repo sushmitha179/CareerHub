@@ -1,28 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
 export default function CompanyDashboard() {
-    const { data: session, status } = useSession();
-    const router = useRouter();
-
     const [jobs, setJobs] = useState<any[]>([]);
     const [applications, setApplications] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (status !== "authenticated") return;
-        if (
-            status === "authenticated" &&
-            session?.user?.role !== "COMPANY"
-        ) {
-            router.push("/");
-            return;
-        }
-
         async function fetchData() {
             try {
                 setLoading(true);
@@ -50,7 +36,7 @@ export default function CompanyDashboard() {
         }
 
         fetchData();
-    }, [status]);
+    }, []);
 
     if (loading) {
         return (

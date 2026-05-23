@@ -2,6 +2,13 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { NextResponse } from "next/server";
+import { AppStatus } from "@prisma/client";
+import { computeApplicationStats } from "@/lib/application-stats";
+import {
+  APP_STATUSES,
+  normalizeAppStatus,
+} from "@/lib/application-status";
+import { ensureReviewingAppStatus } from "@/lib/ensure-app-status-enum";
 
 // ======================
 // GET APPLICATIONS
@@ -30,7 +37,10 @@ export async function GET() {
         });
 
         if (!student) {
-            return NextResponse.json([]);
+            return NextResponse.json({
+                applications: [],
+                stats: computeApplicationStats([]),
+            });
         }
 
         const apps = await prisma.application.findMany({
@@ -38,14 +48,23 @@ export async function GET() {
                 studentId: student.id,
             },
             include: {
-                listing: true,
+                listing: {
+                    include: {
+                        company: {
+                            select: { id: true, name: true },
+                        },
+                    },
+                },
             },
             orderBy: {
                 createdAt: "desc",
             },
         });
 
-        return NextResponse.json(apps);
+        return NextResponse.json({
+            applications: apps,
+            stats: computeApplicationStats(apps),
+        });
     } catch (error) {
         console.error("GET applications error:", error);
 
@@ -112,13 +131,17 @@ export async function POST(req: Request) {
                 { status: 404 }
             );
         }
-        const deadline = new Date(listing.deadline as Date);
-
-        if (deadline.getTime() < Date.now()) {
-            return NextResponse.json(
-                { error: "Application deadline passed" },
-                { status: 400 }
-            );
+        if (listing.deadline) {
+            const deadline = new Date(listing.deadline);
+            if (
+                !Number.isNaN(deadline.getTime()) &&
+                deadline.getTime() < Date.now()
+            ) {
+                return NextResponse.json(
+                    { error: "Application deadline passed" },
+                    { status: 400 }
+                );
+            }
         }
         const existing = await prisma.application.findFirst({
             where: {
@@ -156,13 +179,6 @@ export async function POST(req: Request) {
 // ======================
 // UPDATE STATUS
 // ======================
-const ALLOWED_STATUSES = [
-    "APPLIED",
-    "INTERVIEWING",
-    "OFFERED",
-    "REJECTED",
-] as const;
-
 export async function PATCH(req: Request) {
     try {
         const session = await getServerSession(authOptions);
@@ -182,17 +198,22 @@ export async function PATCH(req: Request) {
         }
         const body = await req.json();
 
-        if (!body.id || !body.status) {
+        if (!body.id || body.status === undefined || body.status === null) {
             return NextResponse.json(
                 { error: "Missing fields" },
                 { status: 400 }
             );
         }
 
-        // ENUM VALIDATION (CRITICAL FIX)
-        if (!ALLOWED_STATUSES.includes(body.status)) {
+        const status = normalizeAppStatus(body.status);
+
+        if (!status) {
             return NextResponse.json(
-                { error: "Invalid status" },
+                {
+                    error: "Invalid status",
+                    allowed: APP_STATUSES,
+                    received: body.status,
+                },
                 { status: 400 }
             );
         }
@@ -222,14 +243,27 @@ export async function PATCH(req: Request) {
             );
         }
 
-
+        if (status === "REVIEWING") {
+            const enumCheck = await ensureReviewingAppStatus(prisma);
+            if (!enumCheck.ok) {
+                return NextResponse.json(
+                    {
+                        error:
+                            "Database is missing REVIEWING status. Run: npm run db:fix-reviewing",
+                        details: enumCheck.error,
+                        hint: "Use your Neon direct (non-pooler) connection string in DIRECT_URL, or run scripts/ensure-reviewing-enum.sql in the Neon SQL editor.",
+                    },
+                    { status: 503 }
+                );
+            }
+        }
 
         const updated = await prisma.application.update({
             where: {
                 id: body.id,
             },
             data: {
-                status: body.status,
+                status: status as AppStatus,
             },
         });
 
@@ -237,8 +271,25 @@ export async function PATCH(req: Request) {
     } catch (error) {
         console.error("PATCH applications error:", error);
 
+        const message =
+            error instanceof Error ? error.message : "Unknown error";
+
+        if (
+            message.includes("REVIEWING") ||
+            message.includes("invalid input value for enum")
+        ) {
+            return NextResponse.json(
+                {
+                    error:
+                        "REVIEWING status is not in the database yet. Run: npx prisma migrate deploy",
+                    details: message,
+                },
+                { status: 500 }
+            );
+        }
+
         return NextResponse.json(
-            { error: "Failed to update status" },
+            { error: "Failed to update status", details: message },
             { status: 500 }
         );
     }

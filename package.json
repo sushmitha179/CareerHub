@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:migrate": "prisma migrate deploy",
+    "db:fix-reviewing": "node scripts/fix-reviewing-enum.mjs",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -23,6 +26,7 @@
     "next-auth": "^4.24.14",
     "nodemailer": "^7.0.13",
     "openai": "^6.35.0",
+    "pdf-parse-fixed": "^1.1.1",
     "prisma": "^5.22.0",
     "radix-ui": "^1.4.3",
     "react": "19.2.4",

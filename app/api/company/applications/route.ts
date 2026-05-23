@@ -52,6 +52,8 @@ export async function GET() {
                         college: true,
                         skills: true,
                         resumeUrl: true,
+                        resumeFileName: true,
+                        resumeUploadedAt: true,
 
                         user: {
                             select: {
@@ -80,7 +82,18 @@ export async function GET() {
             },
         });
 
-        return NextResponse.json(applications);
+        const enriched = applications.map((app) => ({
+            ...app,
+            student: {
+                ...app.student,
+                hasResume: Boolean(app.student.resumeUrl),
+                resumeDownloadUrl: app.student.resumeUrl
+                    ? `/api/company/resume?applicationId=${app.id}`
+                    : null,
+            },
+        }));
+
+        return NextResponse.json(enriched);
 
     } catch (error) {
         console.error("COMPANY_APPLICATIONS_ERROR:", error);

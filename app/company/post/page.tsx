@@ -122,13 +122,6 @@ export default function PostJobPage() {
             setLoading(false);
         }
     }
-    if (status === "loading") {
-        return (
-            <div className="p-10 text-center">
-                Loading...
-            </div>
-        );
-    }
 
     return (
         <div className="max-w-3xl mx-auto">

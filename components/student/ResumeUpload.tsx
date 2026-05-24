@@ -1,9 +1,12 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { UploadButton } from "@uploadthing/react";
+
+import { generateReactHelpers } from "@uploadthing/react";
 import type { OurFileRouter } from "@/app/api/uploadthing/core";
 
+const { useUploadThing } =
+  generateReactHelpers<OurFileRouter>();
 const ACCEPT = ".pdf,.doc,.docx";
 
 type ResumeMeta = {
@@ -37,6 +40,8 @@ export default function ResumeUpload({
     useState<UploadStatus>("idle");
 
   const [message, setMessage] = useState("");
+  const { startUpload } =
+  useUploadThing("resumeUploader");
 
   function updateMeta(next: ResumeMeta) {
     setMeta(next);
@@ -47,72 +52,58 @@ export default function ResumeUpload({
 
     setStatus("uploading");
     setMessage("");
-
+  
     try {
-
-      const uploadFormData = new FormData();
-      uploadFormData.append("files", file);
-
-      const uploadRes = await fetch("/api/uploadthing", {
-        method: "POST",
-        body: uploadFormData,
-      });
-
-      if (!uploadRes.ok) {
-        throw new Error("UploadThing upload failed");
+  
+      const uploaded = await startUpload([file]);
+  
+      if (!uploaded || !uploaded[0]) {
+        throw new Error("Upload failed");
       }
-
-      const uploadData = await uploadRes.json();
-
-      const uploadedUrl =
-        uploadData?.[0]?.url ||
-        uploadData?.data?.[0]?.url;
-
-      if (!uploadedUrl) {
-        throw new Error("No uploaded URL returned");
-      }
-
+  
+      const uploadedUrl = uploaded[0].ufsUrl;
+  
       const formData = new FormData();
-
+  
       formData.append("file", file);
-
+  
       formData.append("uploadedUrl", uploadedUrl);
-
+  
       const res = await fetch("/api/student/resume", {
         method: "POST",
         body: formData,
       });
-
+  
       const data = await res.json();
-
+  
       if (!res.ok) {
         setStatus("error");
         setMessage(data.error || "Upload failed");
         return;
       }
-
+  
       const next: ResumeMeta = {
         hasResume: true,
         resumeFileName: data.resumeFileName,
         resumeUploadedAt: data.resumeUploadedAt,
       };
-
+  
       updateMeta(next);
-
+  
       setStatus("success");
-
+  
       setMessage("Resume uploaded successfully");
-
+  
     } catch (error) {
-
+  
       console.error(error);
-
+  
       setStatus("error");
-
+  
       setMessage("Upload failed. Please try again.");
-
+  
     } finally {
-
+  
       if (inputRef.current) {
         inputRef.current.value = "";
       }

@@ -4,7 +4,6 @@ import { prisma } from "@/lib/prisma";
 import { requireStudentSession } from "@/lib/student-auth";
 import {
   extractTextFromResume,
-  resolveResumeAbsolutePath,
 } from "@/lib/resume-storage";
 import { analyzeResumeText } from "@/lib/resume-analysis";
 const openai = process.env.OPENAI_API_KEY
@@ -35,12 +34,11 @@ export async function POST(req: Request) {
           { status: 400 }
         );
       }
-
-      const absolutePath = resolveResumeAbsolutePath(student.resumeUrl);
       const extracted = await extractTextFromResume(
-        absolutePath,
+        student.resumeUrl,
         student.resumeMimeType
       );
+      
 
       if (!extracted.text) {
         return NextResponse.json(

@@ -103,23 +103,72 @@ export function resolveResumeAbsolutePath(storagePath: string): string {
   return path.join(process.cwd(), "uploads", storagePath);
 }
 
+// export async function extractTextFromResume(
+//   absolutePath: string,
+//   mimeType: string | null
+// ): Promise<{ text: string; warning?: string }> {
+//   if (mimeType === "application/pdf" || absolutePath.endsWith(".pdf")) {
+//     const { readFile: readFileFs } = await import("fs/promises");
+//     const buffer = await readFileFs(absolutePath);
+//     const pdfModule = await import("pdf-parse");
+//     const pdfParse =
+//       typeof pdfModule === "function"
+//         ? pdfModule
+//         : (pdfModule as { default?: (buf: Buffer) => Promise<{ text: string }> })
+//             .default;
+//     if (!pdfParse) {
+//       return { text: "", warning: "PDF parser unavailable" };
+//     }
+//     const parsed = await pdfParse(buffer);
+//     return { text: (parsed.text || "").trim() };
+//   }
 
+//   return {
+//     text: "",
+//     warning:
+//       "Automatic text extraction works for PDF only. Paste resume text in the analyzer for DOC/DOCX files.",
+//   };
+// }
 export async function extractTextFromResume(
-  absolutePath: string,
+  resumePath: string,
   mimeType: string | null
 ): Promise<{ text: string; warning?: string }> {
 
   // PDF extraction
   if (
     mimeType === "application/pdf" ||
-    absolutePath.endsWith(".pdf")
+    resumePath.endsWith(".pdf")
   ) {
     try {
-      const fs = require("fs");
 
       const pdf = require("pdf-parse-fixed");
 
-      const dataBuffer = fs.readFileSync(absolutePath);
+      let dataBuffer: Buffer;
+
+      // UploadThing URL
+      if (
+        resumePath.startsWith("http://") ||
+        resumePath.startsWith("https://")
+      ) {
+
+        const response = await fetch(resumePath);
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch resume");
+        }
+
+        const arrayBuffer =
+          await response.arrayBuffer();
+
+        dataBuffer = Buffer.from(arrayBuffer);
+
+      } else {
+
+        // Local file support
+        const fs = require("fs");
+
+        dataBuffer = fs.readFileSync(resumePath);
+      }
 
       const data = await pdf(dataBuffer);
 
@@ -128,11 +177,16 @@ export async function extractTextFromResume(
       };
 
     } catch (error) {
-      console.error("PDF extraction error:", error);
+
+      console.error(
+        "PDF extraction error:",
+        error
+      );
 
       return {
         text: "",
-        warning: "Failed to extract text from PDF",
+        warning:
+          "Failed to extract text from PDF",
       };
     }
   }

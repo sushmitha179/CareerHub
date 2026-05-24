@@ -10,7 +10,7 @@ export const ourFileRouter = {
     },
   }).onUploadComplete(async ({ file }) => {
     return {
-      url: file.url,
+      url: file.ufsUrl,
     };
   }),
 } satisfies FileRouter;

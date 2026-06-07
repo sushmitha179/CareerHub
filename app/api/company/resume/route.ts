@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { readFile } from "fs/promises";
+// import { readFile } from "fs/promises";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { resolveResumeAbsolutePath } from "@/lib/resume-storage";
+// import { resolveResumeAbsolutePath } from "@/lib/resume-storage";
 
 /** Company downloads applicant resume (authorized via application ownership) */
 export async function GET(req: Request) {
@@ -52,22 +52,23 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "No resume uploaded" }, { status: 404 });
   }
 
-  try {
-    const absolutePath = resolveResumeAbsolutePath(student.resumeUrl);
-    const buffer = await readFile(absolutePath);
-    const fileName = student.resumeFileName || "resume.pdf";
+  // try {
+  //   const absolutePath = resolveResumeAbsolutePath(student.resumeUrl);
+  //   const buffer = await readFile(absolutePath);
+  //   const fileName = student.resumeFileName || "resume.pdf";
 
-    return new NextResponse(buffer, {
-      headers: {
-        "Content-Type": student.resumeMimeType || "application/octet-stream",
-        "Content-Disposition": `inline; filename="${encodeURIComponent(fileName)}"`,
-        "Cache-Control": "private, no-cache",
-      },
-    });
-  } catch {
-    return NextResponse.json(
-      { error: "Resume file not found" },
-      { status: 404 }
-    );
-  }
+  //   return new NextResponse(buffer, {
+  //     headers: {
+  //       "Content-Type": student.resumeMimeType || "application/octet-stream",
+  //       "Content-Disposition": `inline; filename="${encodeURIComponent(fileName)}"`,
+  //       "Cache-Control": "private, no-cache",
+  //     },
+  //   });
+  // } catch {
+  //   return NextResponse.json(
+  //     { error: "Resume file not found" },
+  //     { status: 404 }
+  //   );
+  // }
+  return NextResponse.redirect(student.resumeUrl);
 }

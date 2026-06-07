@@ -1,21 +1,46 @@
-# CareerHub
-
+# CareerHub 🚀
+### AI-Powered Placement & Recruitment Platform
+Built using Next.js, TypeScript, Prisma, PostgreSQL, NextAuth, OpenAI, and UploadThing.
 ![Next.js](https://img.shields.io/badge/Next.js-16-black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-Blue)
 ![Prisma](https://img.shields.io/badge/Prisma-ORM-green)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon-blue)
 ![License](https://img.shields.io/badge/license-MIT-purple)
 
-CareerHub is a full-stack AI-powered placement and recruitment portal built for students and recruiters.
-The platform enables recruiters to post jobs and manage applications, while students can apply for jobs, upload resumes, and analyze resumes using AI-powered ATS feedback.
+CareerHub is a full-stack placement and recruitment platform built with Next.js and TypeScript.
+
+The platform enables students to discover opportunities, upload resumes, and receive AI-powered ATS feedback, while recruiters can create job postings, review applications, and manage the hiring workflow.
 
 ---
 
 ## Live Demo
 
-https://career-hub-lemon.vercel.app
+🔗 https://career-hub-lemon.vercel.app
+
+## Repository
+
+🔗 https://github.com/sushmitha179/CareerHub
 
 ---
+
+## Key Highlights
+
+✔ Google Authentication with NextAuth
+
+✔ Role-based access control (Student / Recruiter)
+
+✔ AI Resume Analyzer with ATS feedback
+
+✔ Resume upload and retrieval with UploadThing
+
+✔ Job application tracking system
+
+✔ Recruiter dashboard and applicant management
+
+✔ PostgreSQL database with Prisma ORM
+
+✔ Fully deployed on Vercel
+
 
 ## Features
 
@@ -161,23 +186,13 @@ npm run dev
 
 ---
 
-## Future Improvements
+## Future Enhancements
 
-* AI-powered resume scoring with detailed ATS feedback
-* Smart job recommendation system based on student skills
-* Email notifications for applications and status updates
-* Real-time recruiter dashboard analytics
-* Resume keyword optimization suggestions
-* Interview preparation assistant using AI
-* Advanced filtering and search for jobs
-* Company profile verification system
-* Admin dashboard for platform management
-* Dark mode support
-* Mobile responsive optimization
-* Resume parsing for automatic profile filling
-* Application status timeline tracking
-* Skill gap analysis and learning recommendations
-* Multi-file resume and portfolio upload support
+- Smart job recommendation system
+- Email notifications
+- Recruiter analytics dashboard
+- Skill-gap analysis and learning recommendations
+- Interview preparation assistant using AI
 
 ---
 
@@ -185,13 +200,20 @@ npm run dev
 
 **Singam Sushmitha**
 
-GitHub: https://github.com/sushmitha179
+GitHub:
+https://github.com/sushmitha179
+
+LinkedIn:
+www.linkedin.com/in/singam-sushmitha
+
+Email:
+sushmithasingam179@gmail.com
 
 ---
 
 ## License
 
-This project is built for educational and portfolio purposes.
+This project is intended for educational and portfolio purposes.
 
 ---
 
